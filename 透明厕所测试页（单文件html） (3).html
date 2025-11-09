@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Transparent Toilet</title>
+  <style>
+    :root{ --bg:#0a0a0a; --card:#111318cc; --text:#e8e8e8; --muted:#a6a6a6; --accent:#63e; --accent-2:#28c; --radius:18px; }
+    html,body{height:100%;}
+    body{ margin:0; background:var(--bg); color:var(--text); font-family: ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; display:grid; place-items:center; min-height:100vh; overflow-x:hidden; }
+    .wrap{ width:min(920px,92vw); display:grid; gap:16px; }
+    .hero{ position:relative; overflow:hidden; border-radius:var(--radius); box-shadow:0 10px 40px #0008; border:1px solid #ffffff12; background:linear-gradient(180deg,#1a1a1a,#0f0f14); }
+    .imgbox{ aspect-ratio:16/9; display:grid; place-items:center; }
+    .imgbox img{ width:100%; height:100%; object-fit:cover; display:block; }
+    .badge{ position:absolute; left:14px; top:14px; background:#ffffff14; border:1px solid #ffffff24; padding:6px 10px; border-radius:999px; font-size:12px; backdrop-filter: blur(6px);}    
+    .card{ background:var(--card); border:1px solid #ffffff1a; border-radius:var(--radius); padding:16px; box-shadow:0 6px 24px #0006; }
+    .row{ display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
+    .row>*{ flex:1 1 auto; }
+    h1{ font-size: clamp(20px, 3vw, 28px); margin:8px 0 2px; }
+    .input{ display:flex; gap:8px; align-items:center; width:100%; background:#0b0d12; border:1px solid #ffffff22; border-radius:12px; padding:8px; }
+    .input input{ flex:1; background:transparent; border:0; outline:none; color:var(--text); font-size:16px; padding:10px; }
+    .btn{ appearance:none; border:0; border-radius:12px; padding:10px 14px; color:#fff; cursor:pointer; font-weight:600; transition:.2s transform ease, .2s opacity ease, .2s filter ease; background:linear-gradient(180deg, var(--accent), var(--accent-2)); box-shadow: 0 8px 24px #4060ff55 inset, 0 6px 24px #0008; }
+    .btn:active{ transform: translateY(1px) scale(.99); }
+    .ghost{ background:#ffffff12; }
+    .counter{ font-size: clamp(22px,4vw,36px); font-weight:800; letter-spacing:.5px; text-align:center; }
+    .toast{ position:fixed; right:16px; bottom:16px; background:#101418ee; border:1px solid #ffffff20; color:#eaffea; padding:10px 12px; border-radius:8px; display:none; box-shadow:0 10px 40px #0008; }
+    .toast.show{ display:block; animation:pop .24s ease; }
+    @keyframes pop{ from{ transform:translateY(6px); opacity:0;} }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <div class="badge">Transparent Toilet</div>
+      <div class="imgbox"><img src="toilet.jpg" alt="Transparent Toilet" /></div>
+    </section>
+
+    <section class="card" id="controls">
+      <div class="counter">People nearby: <span id="peopleNum">—</span></div>
+      <div class="row" style="justify-content:center; gap:8px; margin-top:10px;">
+        <button class="btn" id="startAudio" type="button">▶️ Play Music</button>
+        <button class="btn ghost" id="btnPoo" type="button">💩 Poo</button>
+        <button class="btn ghost" id="btnPee" type="button">🚻 Pee</button>
+        <button class="btn ghost" id="btnFart" type="button">💨 Fart</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h1>Message</h1>
+      <form id="msgForm" class="input" autocomplete="off">
+        <input id="msgInput" type="text" placeholder="Type here…" maxlength="140" />
+        <button class="btn" type="submit">Submit</button>
+      </form>
+      <p id="lastMsg" style="margin-top:8px; color:#b8f5c6; display:none;">✔️ <span></span></p>
+    </section>
+  </div>
+
+  <div class="toast" id="toast">👏</div>
+
+  <audio id="bgAudio" src="background.mp3" loop preload="auto"></audio>
+  <audio id="sfxPoo" src="poo.mp3" preload="auto"></audio>
+  <audio id="sfxPee" src="pee.mp3" preload="auto"></audio>
+  <audio id="sfxFart" src="fart.mp3" preload="auto"></audio>
+  <audio id="applauseAudio" src="applause.mp3" preload="auto"></audio>
+
+  <script>
+    const peopleNumEl = document.getElementById('peopleNum');
+    const randInt = (min,max)=> Math.floor(Math.random()*(max-min+1))+min;
+    peopleNumEl.textContent = String(randInt(18,186));
+
+    const bgAudio = document.getElementById('bgAudio');
+    document.getElementById('startAudio').addEventListener('click', async ()=>{ try{ await bgAudio.play(); toast('Music on'); }catch(e){} });
+
+    // SFX buttons
+    const playOnce = (audioEl)=>{ audioEl.currentTime = 0; audioEl.play().catch(()=>{}); };
+    const sfxPoo = document.getElementById('sfxPoo');
+    const sfxPee = document.getElementById('sfxPee');
+    const sfxFart = document.getElementById('sfxFart');
+    document.getElementById('btnPoo').addEventListener('click', ()=> playOnce(sfxPoo));
+    document.getElementById('btnPee').addEventListener('click', ()=> playOnce(sfxPee));
+    document.getElementById('btnFart').addEventListener('click', ()=> playOnce(sfxFart));
+
+    const form = document.getElementById('msgForm');
+    const input = document.getElementById('msgInput');
+    const lastMsg = document.getElementById('lastMsg');
+    const lastMsgText = lastMsg.querySelector('span');
+    const applause = document.getElementById('applauseAudio');
+    form.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const text = (input.value||'').trim();
+      applause.currentTime = 0; try{ await applause.play(); }catch(e){}
+      lastMsg.style.display = 'block'; lastMsgText.textContent = text || '(blank)'; input.value='';
+      toast('👏');
+    });
+
+    const toastEl = document.getElementById('toast');
+    let t; function toast(s){ toastEl.textContent=s; toastEl.classList.add('show'); clearTimeout(t); t=setTimeout(()=>toastEl.classList.remove('show'), 1500); }
+  </script>
+</body>
+</html>
